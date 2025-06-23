@@ -29,7 +29,7 @@ model Jurisdiction {
 }
 
 model Case {
-  id                BigInt    @id
+  id                Int       @id
   name              String?
   name_abbreviation String?
   decision_date     DateTime? @db.Date
@@ -53,12 +53,12 @@ model Case {
   updated_at DateTime @updatedAt
 
   // Foreign keys
-  court_id        Int?
-  jurisdiction_id Int?
+  court_id        Int
+  jurisdiction_id Int
 
   // Relations
-  court        Court?        @relation(fields: [court_id], references: [id])
-  jurisdiction Jurisdiction? @relation(fields: [jurisdiction_id], references: [id])
+  court        Court        @relation(fields: [court_id], references: [id])
+  jurisdiction Jurisdiction @relation(fields: [jurisdiction_id], references: [id])
 
   @@map("cases")
 }
