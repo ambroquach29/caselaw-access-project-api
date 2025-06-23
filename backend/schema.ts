@@ -12,11 +12,9 @@ export const typeDefs = gql`
 
     # Court queries
     GetAllCourts: [Court]
-    GetCourtById(id: ID!): Court
 
     # Jurisdiction queries
     GetAllJurisdictions: [Jurisdiction]
-    GetJurisdictionById(id: ID!): Jurisdiction
   }
 
   type Mutation {
@@ -40,7 +38,7 @@ export const typeDefs = gql`
     id: ID!
     name: String
     name_abbreviation: String
-    decision_date: String
+    decision_date: DateTime
     docket_number: String
     first_page: String
     last_page: String
@@ -55,6 +53,7 @@ export const typeDefs = gql`
     file_name: String
     first_page_order: Int
     last_page_order: Int
+    time_stamp: TimeStamp
   }
 
   type Citation {
@@ -124,6 +123,11 @@ export const typeDefs = gql`
     text: String
     type: String
     author: String
+  }
+
+  type TimeStamp {
+    created_at: DateTime
+    updated_at: DateTime
   }
 
   # Input types for mutations

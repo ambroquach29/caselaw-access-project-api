@@ -51,8 +51,23 @@ export const resolvers = {
       return await db_logics.getCaseById(parseInt(id));
     },
 
-    GetCasesByJurisdiction: async (_: any, { jurisdiction }: { jurisdiction: string }) => {
+    GetCasesByJurisdiction: async (
+      _: any,
+      { jurisdiction }: { jurisdiction: string }
+    ) => {
       return await db_logics.getCasesByJurisdiction(jurisdiction);
+    },
+
+    GetCasesByCourt: async (_: any, { court }: { court: string }) => {
+      return await db_logics.getCasesByCourt(court);
+    },
+
+    GetAllJurisdictions: async () => {
+      return await db_logics.getJurisdictions();
+    },
+
+    GetAllCourts: async () => {
+      return await db_logics.getCourts();
     },
 
     SearchCases: async (_: any, { id }: { id: string }) => {
@@ -138,6 +153,12 @@ export const resolvers = {
     //   DeleteJurisdiction: async (_: any, { id }: { id: string }) => {
     //     return await db_logics.deleteJurisdictionById(parseInt(id));
     //   },
+  },
+  Case: {
+    time_stamp: (parent: any) => ({
+      created_at: parent.created_at,
+      updated_at: parent.updated_at,
+    }),
   },
 
   DateTime: dateTimeScalar,

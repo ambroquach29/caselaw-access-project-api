@@ -1,12 +1,20 @@
 // import { query, mutate } from './helpers/graphql';
 // import * as gql_strings from './hasura_ops';
 import { readFile } from 'fs/promises';
+import {
+  findCases,
+  findCaseById,
+  findCasesByJurisdiction,
+  findCasesByCourt,
+  findJurisdictions,
+  findCourts,
+} from './db_queries';
 import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
 
 /** This function read and parse json file */
-const readParseJsonFile = async () => {
+export const readParseJsonFile = async () => {
   // const filePath = path.join(__dirname, '..', '..', 'case_data.json')
   const filePath = path.join(__dirname, 'caselaw_data.json');
   const fileContents = await readFile(filePath, { encoding: 'utf8' });
@@ -20,22 +28,35 @@ const readParseJsonFile = async () => {
 
 /** This function returns a list of all Cases. */
 export const getAllCases = async () => {
-  const result = await readParseJsonFile();
-  console.log(result);
+  const result = await findCases();
+  // console.log(result);
   return result;
 };
 
 /** This function returns a Case by its ID. */
 export const getCaseById = async (id: number) => {
-  const result = await readParseJsonFile();
-  return result.find((caseItem: any) => caseItem.id === id);
+  const result = await findCaseById(id);
+  return result;
 };
 
 export const getCasesByJurisdiction = async (jurisdiction: string) => {
-  const result = await readParseJsonFile();
-  return result.filter(
-    (caseItem: any) => caseItem.jurisdiction.name_long === jurisdiction
-  );
+  const result = await findCasesByJurisdiction(jurisdiction);
+  return result;
+};
+
+export const getCasesByCourt = async (court: string) => {
+  const result = await findCasesByCourt(court);
+  return result;
+};
+
+export const getJurisdictions = async () => {
+  const result = await findJurisdictions();
+  return result;
+};
+
+export const getCourts = async () => {
+  const result = await findCourts();
+  return result;
 };
 
 /** This function searches Cases by query string. */
