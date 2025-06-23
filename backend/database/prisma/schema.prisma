@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Based on your legal cases GraphQL schema
+model Court {
+  id                Int     @id @default(autoincrement())
+  name_abbreviation String?
+  name              String?
+  cases             Case[]
+
+  @@map("courts")
+}
+
+model Jurisdiction {
+  id        Int     @id @default(autoincrement())
+  name_long String?
+  name      String?
+  cases     Case[]
+
+  @@map("jurisdictions")
+}
+
+model Case {
+  id                BigInt    @id
+  name              String?
+  name_abbreviation String?
+  decision_date     DateTime? @db.Date
+  docket_number     String?
+  first_page        String?
+  last_page         String?
+
+  // Nested/complex fields as JSONB
+  citations        Json?
+  cites_to         Json?
+  analysis         Json?
+  provenance       Json?
+  casebody         Json?
+  last_updated     DateTime?
+  file_name        String?
+  first_page_order Int?
+  last_page_order  Int?
+
+  // Timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Foreign keys
+  court_id        Int?
+  jurisdiction_id Int?
+
+  // Relations
+  court        Court?        @relation(fields: [court_id], references: [id])
+  jurisdiction Jurisdiction? @relation(fields: [jurisdiction_id], references: [id])
+
+  @@map("cases")
+}
