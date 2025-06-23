@@ -51,6 +51,10 @@ export const resolvers = {
       return await db_logics.getCaseById(parseInt(id));
     },
 
+    GetCasesByJurisdiction: async (_: any, { jurisdiction }: { jurisdiction: string }) => {
+      return await db_logics.getCasesByJurisdiction(jurisdiction);
+    },
+
     SearchCases: async (_: any, { id }: { id: string }) => {
       return await db_logics.searchCases(id);
     },

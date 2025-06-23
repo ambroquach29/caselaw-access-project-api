@@ -31,6 +31,13 @@ export const getCaseById = async (id: number) => {
   return result.find((caseItem: any) => caseItem.id === id);
 };
 
+export const getCasesByJurisdiction = async (jurisdiction: string) => {
+  const result = await readParseJsonFile();
+  return result.filter(
+    (caseItem: any) => caseItem.jurisdiction.name_long === jurisdiction
+  );
+};
+
 /** This function searches Cases by query string. */
 export const searchCases = async (queryString: string) => {
   const result = await readParseJsonFile();
@@ -57,18 +64,21 @@ export const getFilteredCases = async (filters: {
   status?: 'recent' | 'older';
 }) => {
   const allCases = await readParseJsonFile();
-  
+
   return allCases.filter((caseItem: any) => {
     // Jurisdiction filter
-    if (filters.jurisdictionId && caseItem.jurisdiction?.id !== filters.jurisdictionId) {
+    if (
+      filters.jurisdictionId &&
+      caseItem.jurisdiction?.id !== filters.jurisdictionId
+    ) {
       return false;
     }
-    
+
     // Court filter
     if (filters.courtId && caseItem.court?.id !== filters.courtId) {
       return false;
     }
-    
+
     // Date range filter
     if (filters.startDate && caseItem.decision_date < filters.startDate) {
       return false;
@@ -76,13 +86,13 @@ export const getFilteredCases = async (filters: {
     if (filters.endDate && caseItem.decision_date > filters.endDate) {
       return false;
     }
-    
+
     // Status filter (recent vs older)
     if (filters.status) {
       const caseDate = new Date(caseItem.decision_date);
       const fiveYearsAgo = new Date();
       fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-      
+
       if (filters.status === 'recent' && caseDate < fiveYearsAgo) {
         return false;
       }
@@ -90,20 +100,20 @@ export const getFilteredCases = async (filters: {
         return false;
       }
     }
-    
+
     // Search filter
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         caseItem.name?.toLowerCase().includes(searchTerm) ||
         caseItem.name_abbreviation?.toLowerCase().includes(searchTerm) ||
         caseItem.docket_number?.toLowerCase().includes(searchTerm);
-      
+
       if (!matchesSearch) {
         return false;
       }
     }
-    
+
     return true;
   });
 };

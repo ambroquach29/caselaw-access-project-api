@@ -6,7 +6,7 @@ export const typeDefs = gql`
     GetAllCases: [Case]
     GetCaseById(id: ID!): Case
     GetCasesByCourt(courtId: ID!): [Case]
-    GetCasesByJurisdiction(jurisdictionId: ID!): [Case]
+    GetCasesByJurisdiction(jurisdiction: String!): [Case]
     GetCasesByDateRange(startDate: String!, endDate: String!): [Case]
     SearchCases(id: String!): [Case]
 
