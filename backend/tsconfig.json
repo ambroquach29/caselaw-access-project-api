@@ -35,20 +35,13 @@
       "@/utils/*": ["utils/*"],
       "@/middleware/*": ["middleware/*"],
       "@/config/*": ["config/*"]
-    }
+    },
+    "types": ["jest", "node"]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist"],
   "ts-node": {
     "esm": false,
     "experimentalSpecifierResolution": "node"
   }
-} 
+}
