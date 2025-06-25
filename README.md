@@ -2,6 +2,10 @@
 
 A GraphQL API for accessing and managing case law data, built with Apollo Server and TypeScript.
 
+## Initial Caselaw API Architecture
+
+![Caselaw API Architecture](./static/caselaw-api-architecture.png)
+
 ## Overview
 
 This API provides comprehensive access to case law data including cases, courts, and jurisdictions. The schema is designed to handle complex legal data structures with proper relationships and search capabilities.
