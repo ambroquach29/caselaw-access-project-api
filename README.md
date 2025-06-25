@@ -71,7 +71,7 @@ type Jurisdiction {
 
 - `GetAllCases`: Retrieve all cases
 - `GetCaseById(id: ID!)`: Get a specific case by ID
-- `GetCasesByCourt(courtId: ID!)`: Get all cases from a specific court
+- `GetCasesByCourt(court: String!)`: Get all cases from a specific court
 - `GetCasesByJurisdiction(jurisdictionId: ID!)`: Get all cases from a specific jurisdiction
 - `GetCasesByDateRange(startDate: String!, endDate: String!)`: Get cases within a date range
 - `SearchCases(query: String!)`: Search cases by name, abbreviation, or docket number
