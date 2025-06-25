@@ -80,6 +80,10 @@ export const findCases = async () => {
 export const findCaseById = async (id: number) => {
   const caselaw = await prisma.case.findUnique({
     where: { id },
+    include: {
+      court: true,
+      jurisdiction: true,
+    },
   });
   return caselaw;
 };
