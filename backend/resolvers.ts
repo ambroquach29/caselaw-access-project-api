@@ -74,42 +74,12 @@ export const resolvers = {
       return await db_logics.searchCases(id);
     },
 
-    //   GetCasesByCourt: async (_: any, { courtId }: { courtId: string }) => {
-    //     return await db_logics.getCasesByCourt(parseInt(courtId));
-    //   },
-
-    //   GetCasesByJurisdiction: async (
-    //     _: any,
-    //     { jurisdictionId }: { jurisdictionId: string }
-    //   ) => {
-    //     return await db_logics.getCasesByJurisdiction(parseInt(jurisdictionId));
-    //   },
-
     //   GetCasesByDateRange: async (
     //     _: any,
     //     { startDate, endDate }: { startDate: string; endDate: string }
     //   ) => {
     //     return await db_logics.getCasesByDateRange(startDate, endDate);
     //   },
-
-    //   // Court queries
-    //   GetAllCourts: async () => {
-    //     return await db_logics.getAllCourts();
-    //   },
-
-    //   GetCourtById: async (_: any, { id }: { id: string }) => {
-    //     return await db_logics.getCourtById(parseInt(id));
-    //   },
-
-    //   // Jurisdiction queries
-    //   GetAllJurisdictions: async () => {
-    //     return await db_logics.getAllJurisdictions();
-    //   },
-
-    //   GetJurisdictionById: async (_: any, { id }: { id: string }) => {
-    //     return await db_logics.getJurisdictionById(parseInt(id));
-    //   },
-    // },
 
     // Mutation: {
     //   // Case mutations
