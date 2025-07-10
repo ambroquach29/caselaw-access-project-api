@@ -10,10 +10,10 @@ Extracts a small sample from large JSONL.gz files for testing purposes.
 
 ```bash
 # Extract 100 cases for testing
-npm run extract:sample ./cal-app-4th-5th-all.jsonl.gz ./sample-cases.jsonl 100
+npm run extract:sample ./cal-app-4th-5th-all.jsonl.gz ./scripts/sample-cases.jsonl 100
 
 # Extract 1000 cases for larger testing
-npm run extract:sample ./cal-app-4th-5th-all.jsonl.gz ./test-cases.jsonl 1000
+npm run extract:sample ./cal-app-4th-5th-all.jsonl.gz ./scripts/test-cases.jsonl 1000
 ```
 
 ### 2. Basic Bulk Importer (`bulk-import.ts`)
@@ -25,7 +25,7 @@ Simple bulk import script that processes cases in chunks of 1000.
 npm run import:bulk ./cal-app-4th-5th-all.jsonl.gz
 
 # Import from a sample file
-npm run import:bulk ./sample-cases.jsonl
+npm run import:bulk ./scripts/sample-cases.jsonl
 ```
 
 ### 3. Advanced Bulk Importer (`bulk-import-advanced.ts`)
@@ -37,7 +37,7 @@ More sophisticated importer with better error handling, progress tracking, and e
 npm run import:bulk:advanced ./cal-app-4th-5th-all.jsonl.gz
 
 # Import from a sample file
-npm run import:bulk:advanced ./sample-cases.jsonl
+npm run import:bulk:advanced ./scripts/sample-cases.jsonl
 ```
 
 ## Performance Features

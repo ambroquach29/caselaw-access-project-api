@@ -11,12 +11,21 @@ async function extractSample(
     `Extracting ${sampleSize} cases from ${inputFile} to ${outputFile}...`
   );
 
-  const fileStream = createReadStream(inputFile);
-  const gunzip = createGunzip();
+  // Check if file is compressed (.gz) or plain text
+  const isCompressed = inputFile.endsWith('.gz');
+
+  let inputStream;
+  if (isCompressed) {
+    const gunzip = createGunzip();
+    inputStream = createReadStream(inputFile).pipe(gunzip);
+  } else {
+    inputStream = createReadStream(inputFile);
+  }
+
   const writeStream = createWriteStream(outputFile);
 
   const rl = readline.createInterface({
-    input: gunzip,
+    input: inputStream,
     crlfDelay: Infinity,
   });
 
@@ -38,8 +47,9 @@ async function extractSample(
 }
 
 async function main() {
+  // Path starts from root
   const inputFile = process.argv[2] || './cal-app-4th-5th-all.jsonl.gz';
-  const outputFile = process.argv[3] || './sample-cases.jsonl';
+  const outputFile = process.argv[3] || './scripts/sample-cases.jsonl';
   const sampleSize = parseInt(process.argv[4] || '100') || 100;
 
   try {
