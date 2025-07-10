@@ -1,7 +1,9 @@
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { json } from 'body-parser';
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import http from 'http';
 import cors from 'cors';
 import express from 'express';
@@ -12,14 +14,17 @@ import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
 
 async function startApolloServer() {
-  const PORT = process.env['PORT'] || 4000;
+  const PORT = process.env['PORT'] || 5000;
   const app = express();
   const httpServer = http.createServer(app);
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    introspection: true,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    introspection: true, // TODO: change to false in production
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      ApolloServerPluginLandingPageLocalDefault(), // This forces the sandbox to be available, overriding NODE_ENV. TODO: remove this in production
+    ],
   });
 
   await server.start();
@@ -40,7 +45,7 @@ async function startApolloServer() {
     res.send('GraphQL is listening at /graphql');
   });
 
-  await new Promise<void>((resolve) =>
+  await new Promise<void>(resolve =>
     httpServer.listen({ port: PORT }, resolve)
   );
   console.log(`\n 
