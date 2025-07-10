@@ -1,12 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import { createReadStream } from 'fs';
 import { createGunzip } from 'zlib';
 import * as readline from 'readline';
 import dotenv from 'dotenv';
+import { prisma } from '../helpers/prisma';
 
 dotenv.config();
-
-const prisma = new PrismaClient();
 
 interface CaseData {
   id: number;
@@ -220,8 +218,48 @@ class BulkImporter {
         data: this.caseBuffer,
         skipDuplicates: true,
       });
-
       console.log(`Inserted ${result.count} cases from buffer`);
+
+      // // Process cases individually to handle relationships properly
+      // let insertedCount = 0;
+      // for (const caseData of this.caseBuffer) {
+      //   try {
+      //     await prisma.case.upsert({
+      //       where: { id: caseData.id },
+      //       update: {}, // No update for now, just skip if exists
+      //       create: {
+      //         id: caseData.id,
+      //         name: caseData.name || null,
+      //         name_abbreviation: caseData.name_abbreviation || null,
+      //         decision_date: caseData.decision_date || null,
+      //         docket_number: caseData.docket_number || null,
+      //         first_page: caseData.first_page || null,
+      //         last_page: caseData.last_page || null,
+      //         citations: caseData.citations,
+      //         cites_to: caseData.cites_to,
+      //         analysis: caseData.analysis,
+      //         provenance: caseData.provenance,
+      //         casebody: caseData.casebody,
+      //         file_name: caseData.file_name || null,
+      //         first_page_order: caseData.first_page_order || null,
+      //         last_page_order: caseData.last_page_order || null,
+      //         last_updated: caseData.last_updated || null,
+      //         court: {
+      //           connect: { id: caseData.court_id },
+      //         },
+      //         jurisdiction: {
+      //           connect: { id: caseData.jurisdiction_id },
+      //         },
+      //       },
+      //     });
+      //     insertedCount++;
+      //   } catch (error) {
+      //     console.error(`Error inserting case ${caseData.id}:`, error);
+      //     this.errorCount++;
+      //   }
+      // }
+      // console.log(`Inserted ${insertedCount} cases from buffer`);
+
       this.caseBuffer = [];
     } catch (error) {
       console.error('Error flushing buffer:', error);
@@ -249,10 +287,19 @@ class BulkImporter {
     const startTime = Date.now();
 
     try {
-      const gunzip = createGunzip();
+      // Check if file is compressed (.gz) or plain text
+      const isCompressed = filePath.endsWith('.gz');
+
+      let inputStream;
+      if (isCompressed) {
+        const gunzip = createGunzip();
+        inputStream = createReadStream(filePath).pipe(gunzip);
+      } else {
+        inputStream = createReadStream(filePath);
+      }
 
       const rl = readline.createInterface({
-        input: createReadStream(filePath).pipe(gunzip),
+        input: inputStream,
         crlfDelay: Infinity,
       });
 
