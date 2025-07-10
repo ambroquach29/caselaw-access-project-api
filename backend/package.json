@@ -24,7 +24,10 @@
     "docker:compose": "docker-compose up -d",
     "docker:compose:down": "docker-compose down",
     "db:migrate": "npx prisma migrate dev --schema=database/prisma/schema.prisma",
-    "db:queries": "ts-node db_queries.ts"
+    "db:queries": "ts-node db_queries.ts",
+    "import:bulk": "ts-node scripts/bulk-import.ts",
+    "import:bulk:advanced": "ts-node scripts/bulk_import_adv.ts",
+    "extract:sample": "ts-node scripts/sample-extractor.ts"
   },
   "keywords": [
     "graphql",
