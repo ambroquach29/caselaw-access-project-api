@@ -1,15 +1,14 @@
-version: '3.8'
-
 services:
   api:
     build: .
     ports:
-      - "5001:5000"
+      - "5001:5000" # Container port:Host port
     environment:
-      - NODE_ENV=production
+      # TODO: change to production - this will disable graphql sandbox for security
+      - NODE_ENV=development
       - PORT=5000
     env_file:
-      - .env
+      - .env.docker
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
