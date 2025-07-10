@@ -1,5 +1,5 @@
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+// import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
@@ -23,7 +23,9 @@ async function startApolloServer() {
     introspection: true, // TODO: change to false in production
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
-      ApolloServerPluginLandingPageLocalDefault(), // This forces the sandbox to be available, overriding NODE_ENV. TODO: remove this in production
+      // ApolloServerPluginLandingPageLocalDefault(),
+      // TODO: remove this in production if used in dev
+      // This forces the sandbox to be available, overriding NODE_ENV=production.
     ],
   });
 
