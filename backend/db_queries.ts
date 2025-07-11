@@ -2,6 +2,75 @@ import { prisma } from './helpers/prisma';
 import fs from 'fs';
 import path from 'path';
 
+export const findCases = async () => {
+  const cases = await prisma.case.findMany({
+    take: 12000,
+    include: {
+      court: true,
+      jurisdiction: true,
+    },
+  });
+  // console.log(cases);
+  return cases;
+};
+
+export const findCaseById = async (id: number) => {
+  const caselaw = await prisma.case.findUnique({
+    where: { id },
+    include: {
+      court: true,
+      jurisdiction: true,
+    },
+  });
+  return caselaw;
+};
+
+export const findCasesByJurisdiction = async (jurisdiction: string) => {
+  const cases = await prisma.case.findMany({
+    take: 12000, // TODO: remove this and implement pagination
+    where: { jurisdiction: { name_long: jurisdiction } },
+    select: {
+      id: true,
+      name: true,
+      name_abbreviation: true,
+      decision_date: true,
+      docket_number: true,
+      court: {
+        select: {
+          id: true,
+          name: true,
+          name_abbreviation: true,
+        },
+      },
+      jurisdiction: {
+        select: {
+          id: true,
+          name: true,
+          name_long: true,
+        },
+      },
+    },
+  });
+  return cases;
+};
+
+export const findCasesByCourt = async (court: string) => {
+  const cases = await prisma.case.findMany({
+    where: { court: { name: court } },
+  });
+  return cases;
+};
+
+export const findJurisdictions = async () => {
+  const jurisdictions = await prisma.jurisdiction.findMany();
+  return jurisdictions;
+};
+
+export const findCourts = async () => {
+  const courts = await prisma.court.findMany();
+  return courts;
+};
+
 export const insertCases = async () => {
   // Load the JSON data
   const dataPath = path.join(__dirname, 'case_data.json');
@@ -64,52 +133,6 @@ export const insertCases = async () => {
     }
   }
   return cases;
-};
-
-export const findCases = async () => {
-  const cases = await prisma.case.findMany({
-    include: {
-      court: true,
-      jurisdiction: true,
-    },
-  });
-  // console.log(cases);
-  return cases;
-};
-
-export const findCaseById = async (id: number) => {
-  const caselaw = await prisma.case.findUnique({
-    where: { id },
-    include: {
-      court: true,
-      jurisdiction: true,
-    },
-  });
-  return caselaw;
-};
-
-export const findCasesByJurisdiction = async (jurisdiction: string) => {
-  const cases = await prisma.case.findMany({
-    where: { jurisdiction: { name_long: jurisdiction } },
-  });
-  return cases;
-};
-
-export const findCasesByCourt = async (court: string) => {
-  const cases = await prisma.case.findMany({
-    where: { court: { name: court } },
-  });
-  return cases;
-};
-
-export const findJurisdictions = async () => {
-  const jurisdictions = await prisma.jurisdiction.findMany();
-  return jurisdictions;
-};
-
-export const findCourts = async () => {
-  const courts = await prisma.court.findMany();
-  return courts;
 };
 
 // insertCases()
