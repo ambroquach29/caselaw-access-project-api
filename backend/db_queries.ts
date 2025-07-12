@@ -55,7 +55,12 @@ export const findCasesByJurisdiction = async (jurisdiction: string) => {
 
 export const findCasesByCourt = async (court: string) => {
   const cases = await prisma.case.findMany({
+    take: 1000,
     where: { court: { name: court } },
+    include: {
+      court: true,
+      jurisdiction: true,
+    },
   });
   return cases;
 };
