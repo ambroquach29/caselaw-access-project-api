@@ -10,7 +10,6 @@ export const findCases = async () => {
       jurisdiction: true,
     },
   });
-  // console.log(cases);
   return cases;
 };
 
@@ -27,7 +26,7 @@ export const findCaseById = async (id: number) => {
 
 export const findCasesByJurisdiction = async (jurisdiction: string) => {
   const cases = await prisma.case.findMany({
-    take: 12000, // TODO: remove this and implement pagination
+    take: 1000, // TODO: remove this and implement pagination
     where: { jurisdiction: { name_long: jurisdiction } },
     select: {
       id: true,
@@ -61,15 +60,26 @@ export const findCasesByCourt = async (court: string) => {
   return cases;
 };
 
-export const findCasesBySearchText = async (searchText: string) => {
+export const findCasesBySearchText = async (
+  searchText: string,
+  jurisdiction: string | null
+) => {
+  const whereClause: any = {
+    OR: [
+      { name: { contains: searchText, mode: 'insensitive' } },
+      { name_abbreviation: { contains: searchText, mode: 'insensitive' } },
+      { docket_number: { contains: searchText, mode: 'insensitive' } },
+    ],
+  };
+
+  // Only add jurisdiction filter if jurisdiction is not null
+  if (jurisdiction) {
+    whereClause.jurisdiction = { name_long: jurisdiction };
+  }
+
   const cases = await prisma.case.findMany({
-    where: {
-      OR: [
-        { name: { contains: searchText, mode: 'insensitive' } },
-        { name_abbreviation: { contains: searchText, mode: 'insensitive' } },
-        { docket_number: { contains: searchText, mode: 'insensitive' } },
-      ],
-    },
+    take: 1000,
+    where: whereClause,
     include: {
       court: true,
       jurisdiction: true,

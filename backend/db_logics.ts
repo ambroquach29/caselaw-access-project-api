@@ -30,7 +30,6 @@ export const readParseJsonFile = async () => {
 /** This function returns a list of all Cases. */
 export const getAllCases = async () => {
   const result = await findCases();
-  // console.log(result);
   return result;
 };
 
@@ -61,8 +60,14 @@ export const getCourts = async () => {
 };
 
 /** This function searches Cases by query string. */
-export const searchCases = async (searchText: string) => {
-  const result = await findCasesBySearchText(searchText.toLowerCase().trim());
+export const searchCases = async (
+  searchText: string,
+  jurisdiction: string | null
+) => {
+  const result = await findCasesBySearchText(
+    searchText.toLowerCase().trim(),
+    jurisdiction
+  );
   return result;
 };
 
