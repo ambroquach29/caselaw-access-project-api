@@ -92,9 +92,9 @@ class BulkImporter {
     const existingJurisdictions = await prisma.jurisdiction.findMany();
 
     existingCourts.forEach(court => {
-      // Use normalized key for courts
+      // Use normalized key for courts - prioritize name over abbreviation
       const key = this.normalizeCourtKey(
-        court.name_abbreviation || court.name || ''
+        court.name || court.name_abbreviation || ''
       );
       this.courts.set(key, court);
     });
@@ -117,30 +117,50 @@ class BulkImporter {
       .trim();
   }
 
+  private getCourtDisplayName(courtData: any): string {
+    if (courtData.name) {
+      return courtData.name;
+    }
+    if (courtData.name_abbreviation && courtData.name_abbreviation.length > 1) {
+      return courtData.name_abbreviation;
+    }
+    return 'Unknown Court';
+  }
+
   private async ensureCourt(courtData: any): Promise<number> {
     if (!courtData) {
       throw new Error('Court data is required');
     }
 
+    // Use full name as primary key, fallback to abbreviation if name is not available
     const courtKey = this.normalizeCourtKey(
-      courtData.name_abbreviation || courtData.name || ''
+      courtData.name || courtData.name_abbreviation || ''
     );
+
+    // Debug logging for court data issues
+    if (courtData.name_abbreviation && courtData.name_abbreviation.length <= 1) {
+      console.warn(`Short court abbreviation detected: "${courtData.name_abbreviation}" for court: ${courtData.name || 'Unknown'}`);
+    }
 
     if (this.courts.has(courtKey)) {
       return this.courts.get(courtKey)!.id;
     }
 
-    // Create new court
+    // Create new court - use full name for both name and abbreviation if abbreviation is too short
+    const abbreviation = courtData.name_abbreviation && courtData.name_abbreviation.length > 1 
+      ? courtData.name_abbreviation 
+      : courtData.name;
+
     const newCourt = await prisma.court.create({
       data: {
-        name_abbreviation: courtData.name_abbreviation,
+        name_abbreviation: abbreviation,
         name: courtData.name,
       },
     });
 
     this.courts.set(courtKey, newCourt);
     console.log(
-      `Created new court: ${courtData.name_abbreviation || courtData.name} (ID: ${newCourt.id})`
+      `Created new court: ${this.getCourtDisplayName(courtData)} (abbr: ${abbreviation}) (ID: ${newCourt.id})`
     );
 
     return newCourt.id;
@@ -364,10 +384,10 @@ class BulkImporter {
     const allCourts = await prisma.court.findMany();
     const courtGroups = new Map<string, any[]>();
 
-    // Group courts by normalized key
+    // Group courts by normalized key - prioritize name over abbreviation
     allCourts.forEach(court => {
       const normalizedKey = this.normalizeCourtKey(
-        court.name_abbreviation || court.name || ''
+        court.name || court.name_abbreviation || ''
       );
       if (!courtGroups.has(normalizedKey)) {
         courtGroups.set(normalizedKey, []);
