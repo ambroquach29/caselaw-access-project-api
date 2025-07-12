@@ -61,6 +61,23 @@ export const findCasesByCourt = async (court: string) => {
   return cases;
 };
 
+export const findCasesBySearchText = async (searchText: string) => {
+  const cases = await prisma.case.findMany({
+    where: {
+      OR: [
+        { name: { contains: searchText, mode: 'insensitive' } },
+        { name_abbreviation: { contains: searchText, mode: 'insensitive' } },
+        { docket_number: { contains: searchText, mode: 'insensitive' } },
+      ],
+    },
+    include: {
+      court: true,
+      jurisdiction: true,
+    },
+  });
+  return cases;
+};
+
 export const findJurisdictions = async () => {
   const jurisdictions = await prisma.jurisdiction.findMany();
   return jurisdictions;

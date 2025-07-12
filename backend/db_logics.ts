@@ -8,6 +8,7 @@ import {
   findCasesByCourt,
   findJurisdictions,
   findCourts,
+  findCasesBySearchText,
 } from './db_queries';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -60,19 +61,9 @@ export const getCourts = async () => {
 };
 
 /** This function searches Cases by query string. */
-export const searchCases = async (queryString: string) => {
-  const result = await readParseJsonFile();
-  const searchTerm = queryString.toLowerCase();
-
-  return result.filter((caseItem: any) => {
-    return (
-      (caseItem.name && caseItem.name.toLowerCase().includes(searchTerm)) ||
-      (caseItem.name_abbreviation &&
-        caseItem.name_abbreviation.toLowerCase().includes(searchTerm)) ||
-      (caseItem.docket_number &&
-        caseItem.docket_number.toLowerCase().includes(searchTerm))
-    );
-  });
+export const searchCases = async (searchText: string) => {
+  const result = await findCasesBySearchText(searchText.toLowerCase().trim());
+  return result;
 };
 
 // In db_logics.ts

@@ -8,7 +8,7 @@ export const typeDefs = gql`
     GetCasesByCourt(court: String!): [Case]
     GetCasesByJurisdiction(jurisdiction: String!): [Case]
     GetCasesByDateRange(startDate: String!, endDate: String!): [Case]
-    SearchCases(id: String!): [Case]
+    SearchCases(searchText: String!): [Case]
 
     # Court queries
     GetAllCourts: [Court]

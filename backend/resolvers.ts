@@ -70,8 +70,8 @@ export const resolvers = {
       return await db_logics.getCourts();
     },
 
-    SearchCases: async (_: any, { id }: { id: string }) => {
-      return await db_logics.searchCases(id);
+    SearchCases: async (_: any, { searchText }: { searchText: string }) => {
+      return await db_logics.searchCases(searchText);
     },
 
     //   GetCasesByDateRange: async (
