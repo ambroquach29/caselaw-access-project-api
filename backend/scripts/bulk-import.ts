@@ -92,7 +92,10 @@ class BulkImporter {
     const existingJurisdictions = await prisma.jurisdiction.findMany();
 
     existingCourts.forEach(court => {
-      const key = court.name_abbreviation || court.name || '';
+      // Use normalized key for courts
+      const key = this.normalizeCourtKey(
+        court.name_abbreviation || court.name || ''
+      );
       this.courts.set(key, court);
     });
 
@@ -106,12 +109,22 @@ class BulkImporter {
     );
   }
 
+  private normalizeCourtKey(key: string): string {
+    return key
+      .toLowerCase()
+      .replace(/[.,]/g, '') // Remove periods and commas
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+  }
+
   private async ensureCourt(courtData: any): Promise<number> {
     if (!courtData) {
       throw new Error('Court data is required');
     }
 
-    const courtKey = courtData.name_abbreviation || courtData.name || '';
+    const courtKey = this.normalizeCourtKey(
+      courtData.name_abbreviation || courtData.name || ''
+    );
 
     if (this.courts.has(courtKey)) {
       return this.courts.get(courtKey)!.id;
@@ -126,7 +139,9 @@ class BulkImporter {
     });
 
     this.courts.set(courtKey, newCourt);
-    console.log(`Created new court: ${courtKey} (ID: ${newCourt.id})`);
+    console.log(
+      `Created new court: ${courtData.name_abbreviation || courtData.name} (ID: ${newCourt.id})`
+    );
 
     return newCourt.id;
   }
@@ -341,6 +356,56 @@ class BulkImporter {
   async close() {
     await prisma.$disconnect();
   }
+
+  // Utility method to clean up duplicate courts
+  async cleanupDuplicateCourts() {
+    console.log('Cleaning up duplicate courts...');
+
+    const allCourts = await prisma.court.findMany();
+    const courtGroups = new Map<string, any[]>();
+
+    // Group courts by normalized key
+    allCourts.forEach(court => {
+      const normalizedKey = this.normalizeCourtKey(
+        court.name_abbreviation || court.name || ''
+      );
+      if (!courtGroups.has(normalizedKey)) {
+        courtGroups.set(normalizedKey, []);
+      }
+      courtGroups.get(normalizedKey)!.push(court);
+    });
+
+    // Find and handle duplicates
+    let deletedCount = 0;
+    for (const [key, courts] of courtGroups.entries()) {
+      if (courts.length > 1) {
+        console.log(`Found ${courts.length} duplicate courts for key: ${key}`);
+
+        // Keep the first court, delete the rest
+        const [keepCourt, ...duplicateCourts] = courts;
+
+        for (const duplicateCourt of duplicateCourts) {
+          // Update cases to reference the kept court
+          await prisma.case.updateMany({
+            where: { court_id: duplicateCourt.id },
+            data: { court_id: keepCourt.id },
+          });
+
+          // Delete the duplicate court
+          await prisma.court.delete({
+            where: { id: duplicateCourt.id },
+          });
+
+          deletedCount++;
+          console.log(
+            `Deleted duplicate court: ${duplicateCourt.name_abbreviation || duplicateCourt.name} (ID: ${duplicateCourt.id})`
+          );
+        }
+      }
+    }
+
+    console.log(`Cleanup complete. Deleted ${deletedCount} duplicate courts.`);
+  }
 }
 
 async function main() {
@@ -348,6 +413,12 @@ async function main() {
 
   try {
     await importer.initialize();
+
+    // Check if cleanup is requested
+    if (process.argv.includes('--cleanup')) {
+      await importer.cleanupDuplicateCourts();
+      return;
+    }
 
     // Process the JSONL.gz file
     const filePath = process.argv[2] || './cal-app-4th-5th-all.jsonl.gz';

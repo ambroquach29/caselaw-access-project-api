@@ -28,7 +28,8 @@
     "db:queries": "ts-node db_queries.ts",
     "import:bulk": "ts-node scripts/bulk-import.ts",
     "import:bulk:advanced": "ts-node scripts/bulk_import_adv.ts",
-    "extract:sample": "ts-node scripts/sample-extractor.ts"
+    "extract:sample": "ts-node scripts/sample-extractor.ts",
+    "cleanup:duplicates": "ts-node scripts/bulk-import.ts --cleanup"
   },
   "keywords": [
     "graphql",
