@@ -1,16 +1,52 @@
 import { prisma } from './helpers/prisma';
+import {
+  parsePaginationArgs,
+  createPaginationResult,
+  PaginationArgs,
+} from './helpers/pagination';
 import fs from 'fs';
 import path from 'path';
 
-export const findCases = async () => {
+export const findCases = async (paginationArgs?: PaginationArgs) => {
+  if (!paginationArgs) {
+    // Fallback to original behavior for backward compatibility
+    const cases = await prisma.case.findMany({
+      take: 12000,
+      include: {
+        court: true,
+        jurisdiction: true,
+      },
+    });
+    return cases;
+  }
+
+  const params = parsePaginationArgs(paginationArgs);
+
+  // Get total count
+  const totalCount = await prisma.case.count();
+
+  // Get paginated results
   const cases = await prisma.case.findMany({
-    take: 12000,
+    ...params,
     include: {
       court: true,
       jurisdiction: true,
     },
+    orderBy: {
+      id: 'asc',
+    },
   });
-  return cases;
+
+  // Check if there are more items
+  const hasNextPage = cases.length === params.take;
+  const hasPreviousPage = !!paginationArgs.after;
+
+  return createPaginationResult(
+    cases,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage
+  );
 };
 
 export const findCaseById = async (id: number) => {
@@ -24,9 +60,50 @@ export const findCaseById = async (id: number) => {
   return caselaw;
 };
 
-export const findCasesByJurisdiction = async (jurisdiction: string) => {
+export const findCasesByJurisdiction = async (
+  jurisdiction: string,
+  paginationArgs?: PaginationArgs
+) => {
+  if (!paginationArgs) {
+    // Fallback to original behavior
+    const cases = await prisma.case.findMany({
+      take: 1000,
+      where: { jurisdiction: { name_long: jurisdiction } },
+      select: {
+        id: true,
+        name: true,
+        name_abbreviation: true,
+        decision_date: true,
+        docket_number: true,
+        court: {
+          select: {
+            id: true,
+            name: true,
+            name_abbreviation: true,
+          },
+        },
+        jurisdiction: {
+          select: {
+            id: true,
+            name: true,
+            name_long: true,
+          },
+        },
+      },
+    });
+    return cases;
+  }
+
+  const params = parsePaginationArgs(paginationArgs);
+
+  // Get total count for this jurisdiction
+  const totalCount = await prisma.case.count({
+    where: { jurisdiction: { name_long: jurisdiction } },
+  });
+
+  // Get paginated results
   const cases = await prisma.case.findMany({
-    take: 1000, // TODO: remove this and implement pagination
+    ...params,
     where: { jurisdiction: { name_long: jurisdiction } },
     select: {
       id: true,
@@ -49,25 +126,74 @@ export const findCasesByJurisdiction = async (jurisdiction: string) => {
         },
       },
     },
+    orderBy: {
+      id: 'asc',
+    },
   });
-  return cases;
+
+  const hasNextPage = cases.length === params.take;
+  const hasPreviousPage = !!paginationArgs.after;
+
+  return createPaginationResult(
+    cases,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage
+  );
 };
 
-export const findCasesByCourt = async (court: string) => {
+export const findCasesByCourt = async (
+  court: string,
+  paginationArgs?: PaginationArgs
+) => {
+  if (!paginationArgs) {
+    // Fallback to original behavior
+    const cases = await prisma.case.findMany({
+      take: 1000,
+      where: { court: { name: court } },
+      include: {
+        court: true,
+        jurisdiction: true,
+      },
+    });
+    return cases;
+  }
+
+  const params = parsePaginationArgs(paginationArgs);
+
+  // Get total count for this court
+  const totalCount = await prisma.case.count({
+    where: { court: { name: court } },
+  });
+
+  // Get paginated results
   const cases = await prisma.case.findMany({
-    take: 1000,
+    ...params,
     where: { court: { name: court } },
     include: {
       court: true,
       jurisdiction: true,
     },
+    orderBy: {
+      id: 'asc',
+    },
   });
-  return cases;
+
+  const hasNextPage = cases.length === params.take;
+  const hasPreviousPage = !!paginationArgs.after;
+
+  return createPaginationResult(
+    cases,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage
+  );
 };
 
 export const findCasesBySearchText = async (
   searchText: string,
-  jurisdiction: string | null
+  jurisdiction: string | null,
+  paginationArgs?: PaginationArgs
 ) => {
   const whereClause: any = {
     OR: [
@@ -82,15 +208,48 @@ export const findCasesBySearchText = async (
     whereClause.jurisdiction = { name_long: jurisdiction };
   }
 
+  if (!paginationArgs) {
+    // Fallback to original behavior
+    const cases = await prisma.case.findMany({
+      take: 1000,
+      where: whereClause,
+      include: {
+        court: true,
+        jurisdiction: true,
+      },
+    });
+    return cases;
+  }
+
+  const params = parsePaginationArgs(paginationArgs);
+
+  // Get total count for search
+  const totalCount = await prisma.case.count({
+    where: whereClause,
+  });
+
+  // Get paginated results
   const cases = await prisma.case.findMany({
-    take: 1000,
+    ...params,
     where: whereClause,
     include: {
       court: true,
       jurisdiction: true,
     },
+    orderBy: {
+      id: 'asc',
+    },
   });
-  return cases;
+
+  const hasNextPage = cases.length === params.take;
+  const hasPreviousPage = !!paginationArgs.after;
+
+  return createPaginationResult(
+    cases,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage
+  );
 };
 
 export const findJurisdictions = async () => {

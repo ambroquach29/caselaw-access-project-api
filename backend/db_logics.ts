@@ -10,6 +10,7 @@ import {
   findCourts,
   findCasesBySearchText,
 } from './db_queries';
+import { PaginationArgs } from './helpers/pagination';
 import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -27,9 +28,9 @@ export const readParseJsonFile = async () => {
     CRUD operations for Case Law
 ************************************/
 
-/** This function returns a list of all Cases. */
-export const getAllCases = async () => {
-  const result = await findCases();
+/** This function returns a list of all Cases with pagination support. */
+export const getAllCases = async (paginationArgs?: PaginationArgs) => {
+  const result = await findCases(paginationArgs);
   return result;
 };
 
@@ -39,13 +40,19 @@ export const getCaseById = async (id: number) => {
   return result;
 };
 
-export const getCasesByJurisdiction = async (jurisdiction: string) => {
-  const result = await findCasesByJurisdiction(jurisdiction);
+export const getCasesByJurisdiction = async (
+  jurisdiction: string,
+  paginationArgs?: PaginationArgs
+) => {
+  const result = await findCasesByJurisdiction(jurisdiction, paginationArgs);
   return result;
 };
 
-export const getCasesByCourt = async (court: string) => {
-  const result = await findCasesByCourt(court);
+export const getCasesByCourt = async (
+  court: string,
+  paginationArgs?: PaginationArgs
+) => {
+  const result = await findCasesByCourt(court, paginationArgs);
   return result;
 };
 
@@ -59,14 +66,16 @@ export const getCourts = async () => {
   return result;
 };
 
-/** This function searches Cases by query string. */
+/** This function searches Cases by query string with pagination support. */
 export const searchCases = async (
   searchText: string,
-  jurisdiction: string | null
+  jurisdiction: string | null,
+  paginationArgs?: PaginationArgs
 ) => {
   const result = await findCasesBySearchText(
     searchText.toLowerCase().trim(),
-    jurisdiction
+    jurisdiction,
+    paginationArgs
   );
   return result;
 };
