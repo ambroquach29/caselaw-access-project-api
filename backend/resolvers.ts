@@ -1,5 +1,6 @@
 import { GraphQLScalarType, Kind } from 'graphql';
 import * as db_logics from './db_logics';
+import { PaginationArgs } from './helpers/pagination';
 
 const dateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',
@@ -43,8 +44,8 @@ const dateTimeScalar = new GraphQLScalarType({
 export const resolvers = {
   Query: {
     // Case queries
-    GetAllCases: async () => {
-      return await db_logics.getAllCases();
+    GetAllCases: async (_: any, { first, after }: PaginationArgs) => {
+      return await db_logics.getAllCases({ first, after });
     },
 
     GetCaseById: async (_: any, { id }: { id: string }) => {
@@ -53,13 +54,19 @@ export const resolvers = {
 
     GetCasesByJurisdiction: async (
       _: any,
-      { jurisdiction }: { jurisdiction: string }
+      { jurisdiction, first, after }: { jurisdiction: string } & PaginationArgs
     ) => {
-      return await db_logics.getCasesByJurisdiction(jurisdiction);
+      return await db_logics.getCasesByJurisdiction(jurisdiction, {
+        first,
+        after,
+      });
     },
 
-    GetCasesByCourt: async (_: any, { court }: { court: string }) => {
-      return await db_logics.getCasesByCourt(court);
+    GetCasesByCourt: async (
+      _: any,
+      { court, first, after }: { court: string } & PaginationArgs
+    ) => {
+      return await db_logics.getCasesByCourt(court, { first, after });
     },
 
     GetAllJurisdictions: async () => {
@@ -75,11 +82,16 @@ export const resolvers = {
       {
         searchText,
         jurisdiction,
-      }: { searchText: string; jurisdiction: string | null }
+        first,
+        after,
+      }: { searchText: string; jurisdiction: string | null } & PaginationArgs
     ) => {
       console.log('searchText:', searchText);
       console.log('jurisdiction:', jurisdiction);
-      return await db_logics.searchCases(searchText, jurisdiction);
+      return await db_logics.searchCases(searchText, jurisdiction, {
+        first,
+        after,
+      });
     },
 
     //   GetCasesByDateRange: async (

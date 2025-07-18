@@ -3,18 +3,51 @@ import { gql } from 'apollo-server-express';
 export const typeDefs = gql`
   type Query {
     # Case queries
-    GetAllCases: [Case]
+    GetAllCases(first: Int, after: String): CaseConnection!
     GetCaseById(id: ID!): Case
-    GetCasesByCourt(court: String!): [Case]
-    GetCasesByJurisdiction(jurisdiction: String!): [Case]
-    GetCasesByDateRange(startDate: String!, endDate: String!): [Case]
-    SearchCases(searchText: String!, jurisdiction: String): [Case]
+    GetCasesByCourt(court: String!, first: Int, after: String): CaseConnection!
+    GetCasesByJurisdiction(
+      jurisdiction: String!
+      first: Int
+      after: String
+    ): CaseConnection!
+    GetCasesByDateRange(
+      startDate: String!
+      endDate: String!
+      first: Int
+      after: String
+    ): CaseConnection!
+    SearchCases(
+      searchText: String!
+      jurisdiction: String
+      first: Int
+      after: String
+    ): CaseConnection!
 
     # Court queries
     GetAllCourts: [Court]
 
     # Jurisdiction queries
     GetAllJurisdictions: [Jurisdiction]
+  }
+
+  # Cursor pagination types
+  type CaseConnection {
+    edges: [CaseEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
+  type CaseEdge {
+    node: Case!
+    cursor: String!
+  }
+
+  type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
   }
 
   type Mutation {
