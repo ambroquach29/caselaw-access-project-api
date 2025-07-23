@@ -56,16 +56,29 @@ interface ProcessedCase {
   jurisdiction_id: number;
 }
 
+// Add normalization helpers
+function normalizeCourtKey(key: string): string {
+  return key
+    .toLowerCase()
+    .replace(/[.,]/g, '') // Remove periods and commas
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+}
+
+function getCourtDisplayName(courtData: any): string {
+  if (courtData.name) {
+    return courtData.name;
+  }
+  if (courtData.name_abbreviation && courtData.name_abbreviation.length > 1) {
+    return courtData.name_abbreviation;
+  }
+  return 'Unknown Court';
+}
+
 class AdvancedBulkImporter {
   private courts = new Map<string, number>();
   private jurisdictions = new Map<string, number>();
   private caseBuffer: ProcessedCase[] = [];
-  private courtBuffer: Array<{ name_abbreviation?: string; name?: string }> =
-    [];
-  private jurisdictionBuffer: Array<{ name_long?: string; name?: string }> = [];
-  private readonly BATCH_SIZE = 10; // Much smaller for Prisma Dev
-  private readonly COURT_BATCH_SIZE = 5; // Much smaller for Prisma Dev
-  private readonly JURISDICTION_BATCH_SIZE = 5; // Much smaller for Prisma Dev
   private processedCount = 0;
   private errorCount = 0;
   private startTime!: number;
@@ -102,109 +115,49 @@ class AdvancedBulkImporter {
     );
   }
 
-  private async flushCourtBuffer() {
-    if (this.courtBuffer.length === 0) return;
-
-    try {
-      const courtsToCreate = this.courtBuffer.filter(court => {
-        const key = court.name_abbreviation || court.name || '';
-        return !this.courts.has(key);
-      });
-
-      if (courtsToCreate.length > 0) {
-        const createdCourts = await prisma.court.createMany({
-          data: courtsToCreate,
-          skipDuplicates: true,
-        });
-
-        // Reload courts to get the new IDs
-        const newCourts = await prisma.court.findMany({
-          where: {
-            OR: courtsToCreate.map(court => ({
-              name_abbreviation: court.name_abbreviation || null,
-              name: court.name || null,
-            })),
-          },
-        });
-
-        newCourts.forEach(court => {
-          const key = court.name_abbreviation || court.name || '';
-          this.courts.set(key, court.id);
-        });
-
-        console.log(`Created ${createdCourts.count} new courts`);
-      }
-
-      this.courtBuffer = [];
-    } catch (error) {
-      console.error('Error flushing court buffer:', error);
-    }
-  }
-
-  private async flushJurisdictionBuffer() {
-    if (this.jurisdictionBuffer.length === 0) return;
-
-    try {
-      const jurisdictionsToCreate = this.jurisdictionBuffer.filter(
-        jurisdiction => {
-          const key = jurisdiction.name_long || jurisdiction.name || '';
-          return !this.jurisdictions.has(key);
-        }
-      );
-
-      if (jurisdictionsToCreate.length > 0) {
-        const createdJurisdictions = await prisma.jurisdiction.createMany({
-          data: jurisdictionsToCreate,
-          skipDuplicates: true,
-        });
-
-        // Reload jurisdictions to get the new IDs
-        const newJurisdictions = await prisma.jurisdiction.findMany({
-          where: {
-            OR: jurisdictionsToCreate.map(jurisdiction => ({
-              name_long: jurisdiction.name_long || null,
-              name: jurisdiction.name || null,
-            })),
-          },
-        });
-
-        newJurisdictions.forEach(jurisdiction => {
-          const key = jurisdiction.name_long || jurisdiction.name || '';
-          this.jurisdictions.set(key, jurisdiction.id);
-        });
-
-        console.log(`Created ${createdJurisdictions.count} new jurisdictions`);
-      }
-
-      this.jurisdictionBuffer = [];
-    } catch (error) {
-      console.error('Error flushing jurisdiction buffer:', error);
-    }
-  }
-
   private async ensureCourt(courtData: any): Promise<number> {
     if (!courtData) {
       throw new Error('Court data is required');
     }
 
-    const courtKey = courtData.name_abbreviation || courtData.name || '';
+    // Use normalized key for courts - prioritize name over abbreviation
+    const courtKey = normalizeCourtKey(
+      courtData.name || courtData.name_abbreviation || ''
+    );
+
+    // Debug logging for court data issues
+    if (
+      courtData.name_abbreviation &&
+      courtData.name_abbreviation.length <= 1
+    ) {
+      console.warn(
+        `Short court abbreviation detected: "${courtData.name_abbreviation}" for court: ${courtData.name || 'Unknown'}`
+      );
+    }
 
     if (this.courts.has(courtKey)) {
       return this.courts.get(courtKey)!;
     }
 
-    // Add to buffer for batch creation
-    this.courtBuffer.push({
-      name_abbreviation: courtData.name_abbreviation,
-      name: courtData.name,
+    // Create new court - use full name for both name and abbreviation if abbreviation is too short
+    const abbreviation =
+      courtData.name_abbreviation && courtData.name_abbreviation.length > 1
+        ? courtData.name_abbreviation
+        : courtData.name;
+
+    const newCourt = await prisma.court.create({
+      data: {
+        name_abbreviation: abbreviation,
+        name: courtData.name,
+      },
     });
 
-    if (this.courtBuffer.length >= this.COURT_BATCH_SIZE) {
-      await this.flushCourtBuffer();
-    }
+    this.courts.set(courtKey, newCourt.id);
+    console.log(
+      `Created new court: ${getCourtDisplayName(courtData)} (abbr: ${abbreviation}) (ID: ${newCourt.id})`
+    );
 
-    // Try to get the ID again after potential creation
-    return this.courts.get(courtKey) || 0;
+    return newCourt.id;
   }
 
   private async ensureJurisdiction(jurisdictionData: any): Promise<number> {
@@ -219,18 +172,20 @@ class AdvancedBulkImporter {
       return this.jurisdictions.get(jurisdictionKey)!;
     }
 
-    // Add to buffer for batch creation
-    this.jurisdictionBuffer.push({
-      name_long: jurisdictionData.name_long,
-      name: jurisdictionData.name,
+    // Create new jurisdiction
+    const newJurisdiction = await prisma.jurisdiction.create({
+      data: {
+        name_long: jurisdictionData.name_long,
+        name: jurisdictionData.name,
+      },
     });
 
-    if (this.jurisdictionBuffer.length >= this.JURISDICTION_BATCH_SIZE) {
-      await this.flushJurisdictionBuffer();
-    }
+    this.jurisdictions.set(jurisdictionKey, newJurisdiction.id);
+    console.log(
+      `Created new jurisdiction: ${jurisdictionKey} (ID: ${newJurisdiction.id})`
+    );
 
-    // Try to get the ID again after potential creation
-    return this.jurisdictions.get(jurisdictionKey) || 0;
+    return newJurisdiction.id;
   }
 
   private processCase(caseData: CaseData): ProcessedCase | null {
@@ -348,7 +303,8 @@ class AdvancedBulkImporter {
     this.caseBuffer.push(processedCase);
     this.processedCount++;
 
-    if (this.caseBuffer.length >= this.BATCH_SIZE) {
+    if (this.caseBuffer.length >= 10) {
+      // Changed from BATCH_SIZE to 10
       await this.flushCaseBuffer();
     }
 
@@ -389,7 +345,7 @@ class AdvancedBulkImporter {
         try {
           const caseData: CaseData = JSON.parse(line);
 
-          // Ensure court and jurisdiction exist
+          // Ensure court and jurisdiction exist (robust logic)
           const courtId = await this.ensureCourt(caseData.court);
           const jurisdictionId = await this.ensureJurisdiction(
             caseData.jurisdiction
@@ -417,11 +373,7 @@ class AdvancedBulkImporter {
       }
 
       // Flush remaining buffers
-      await Promise.all([
-        this.flushCourtBuffer(),
-        this.flushJurisdictionBuffer(),
-        this.flushCaseBuffer(),
-      ]);
+      await this.flushCaseBuffer(); // Changed from flushCourtBuffer, flushJurisdictionBuffer
 
       const endTime = Date.now();
       const duration = (endTime - this.startTime) / 1000;
