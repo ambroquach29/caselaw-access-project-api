@@ -99,56 +99,6 @@ export const resolvers = {
         after,
       });
     },
-
-    //   GetCasesByDateRange: async (
-    //     _: any,
-    //     { startDate, endDate }: { startDate: string; endDate: string }
-    //   ) => {
-    //     return await db_logics.getCasesByDateRange(startDate, endDate);
-    //   },
-
-    // Mutation: {
-    //   // Case mutations
-    //   InsertCase: async (_: any, { input }: { input: any }) => {
-    //     return await db_logics.insertCase(input);
-    //   },
-
-    //   UpdateCase: async (_: any, { id, input }: { id: string; input: any }) => {
-    //     return await db_logics.updateCaseById(parseInt(id), input);
-    //   },
-
-    //   DeleteCase: async (_: any, { id }: { id: string }) => {
-    //     return await db_logics.deleteCaseById(parseInt(id));
-    //   },
-
-    //   // Court mutations
-    //   InsertCourt: async (_: any, { input }: { input: any }) => {
-    //     return await db_logics.insertCourt(input);
-    //   },
-
-    //   UpdateCourt: async (_: any, { id, input }: { id: string; input: any }) => {
-    //     return await db_logics.updateCourtById(parseInt(id), input);
-    //   },
-
-    //   DeleteCourt: async (_: any, { id }: { id: string }) => {
-    //     return await db_logics.deleteCourtById(parseInt(id));
-    //   },
-
-    //   // Jurisdiction mutations
-    //   InsertJurisdiction: async (_: any, { input }: { input: any }) => {
-    //     return await db_logics.insertJurisdiction(input);
-    //   },
-
-    //   UpdateJurisdiction: async (
-    //     _: any,
-    //     { id, input }: { id: string; input: any }
-    //   ) => {
-    //     return await db_logics.updateJurisdictionById(parseInt(id), input);
-    //   },
-
-    //   DeleteJurisdiction: async (_: any, { id }: { id: string }) => {
-    //     return await db_logics.deleteJurisdictionById(parseInt(id));
-    //   },
   },
   Case: {
     time_stamp: (parent: any) => ({
