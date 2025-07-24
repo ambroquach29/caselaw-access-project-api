@@ -62,13 +62,25 @@ export const findCaseById = async (id: number) => {
 
 export const findCasesByJurisdiction = async (
   jurisdiction: string,
-  paginationArgs?: PaginationArgs
+  paginationArgs?: PaginationArgs,
+  year?: number
 ) => {
+  // Build year filter if provided
+  let yearFilter = {};
+  if (year) {
+    yearFilter = {
+      decision_date: {
+        gte: new Date(`${year}-01-01`),
+        lt: new Date(`${year + 1}-01-01`),
+      },
+    };
+  }
+
   if (!paginationArgs) {
     // Fallback to original behavior
     const cases = await prisma.case.findMany({
       take: 1000,
-      where: { jurisdiction: { name_long: jurisdiction } },
+      where: { jurisdiction: { name_long: jurisdiction }, ...yearFilter },
       select: {
         id: true,
         name: true,
@@ -96,15 +108,15 @@ export const findCasesByJurisdiction = async (
 
   const params = parsePaginationArgs(paginationArgs);
 
-  // Get total count for this jurisdiction
+  // Get total count for this jurisdiction and year
   const totalCount = await prisma.case.count({
-    where: { jurisdiction: { name_long: jurisdiction } },
+    where: { jurisdiction: { name_long: jurisdiction }, ...yearFilter },
   });
 
   // Get paginated results
   const cases = await prisma.case.findMany({
     ...params,
-    where: { jurisdiction: { name_long: jurisdiction } },
+    where: { jurisdiction: { name_long: jurisdiction }, ...yearFilter },
     select: {
       id: true,
       name: true,
@@ -325,11 +337,3 @@ export const insertCases = async () => {
   }
   return cases;
 };
-
-// insertCases()
-//   .catch((err) => {
-//     console.error('Fatal error:', err);
-//   })
-//   .finally(async () => {
-//     await prisma.$disconnect();
-//   });

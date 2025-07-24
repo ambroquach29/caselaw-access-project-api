@@ -42,9 +42,14 @@ export const getCaseById = async (id: number) => {
 
 export const getCasesByJurisdiction = async (
   jurisdiction: string,
-  paginationArgs?: PaginationArgs
+  paginationArgs?: PaginationArgs,
+  year?: number
 ) => {
-  const result = await findCasesByJurisdiction(jurisdiction, paginationArgs);
+  const result = await findCasesByJurisdiction(
+    jurisdiction,
+    paginationArgs,
+    year
+  );
   return result;
 };
 
