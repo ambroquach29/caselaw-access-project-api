@@ -8,6 +8,7 @@ export const typeDefs = gql`
     GetCasesByCourt(court: String!, first: Int, after: String): CaseConnection!
     GetCasesByJurisdiction(
       jurisdiction: String!
+      year: Int
       first: Int
       after: String
     ): CaseConnection!

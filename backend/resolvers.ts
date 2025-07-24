@@ -54,12 +54,18 @@ export const resolvers = {
 
     GetCasesByJurisdiction: async (
       _: any,
-      { jurisdiction, first, after }: { jurisdiction: string } & PaginationArgs
-    ) => {
-      return await db_logics.getCasesByJurisdiction(jurisdiction, {
+      {
+        jurisdiction,
+        year,
         first,
         after,
-      });
+      }: { jurisdiction: string; year?: number } & PaginationArgs
+    ) => {
+      return await db_logics.getCasesByJurisdiction(
+        jurisdiction,
+        { first, after },
+        year
+      );
     },
 
     GetCasesByCourt: async (
