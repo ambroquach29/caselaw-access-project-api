@@ -21,6 +21,7 @@ export const typeDefs = gql`
     SearchCases(
       searchText: String!
       jurisdiction: String
+      year: Int
       first: Int
       after: String
     ): CaseConnection!

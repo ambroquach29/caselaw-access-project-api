@@ -88,16 +88,26 @@ export const resolvers = {
       {
         searchText,
         jurisdiction,
+        year,
         first,
         after,
-      }: { searchText: string; jurisdiction: string | null } & PaginationArgs
+      }: {
+        searchText: string;
+        jurisdiction: string | null;
+        year?: number;
+      } & PaginationArgs
     ) => {
       console.log('searchText:', searchText);
       console.log('jurisdiction:', jurisdiction);
-      return await db_logics.searchCases(searchText, jurisdiction, {
-        first,
-        after,
-      });
+      return await db_logics.searchCases(
+        searchText,
+        jurisdiction,
+        {
+          first,
+          after,
+        },
+        year
+      );
     },
   },
   Case: {
