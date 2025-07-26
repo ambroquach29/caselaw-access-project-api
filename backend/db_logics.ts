@@ -75,12 +75,14 @@ export const getCourts = async () => {
 export const searchCases = async (
   searchText: string,
   jurisdiction: string | null,
-  paginationArgs?: PaginationArgs
+  paginationArgs?: PaginationArgs,
+  year?: number
 ) => {
   const result = await findCasesBySearchText(
     searchText.toLowerCase().trim(),
     jurisdiction,
-    paginationArgs
+    paginationArgs,
+    year
   );
   return result;
 };

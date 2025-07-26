@@ -205,7 +205,8 @@ export const findCasesByCourt = async (
 export const findCasesBySearchText = async (
   searchText: string,
   jurisdiction: string | null,
-  paginationArgs?: PaginationArgs
+  paginationArgs?: PaginationArgs,
+  year?: number
 ) => {
   const whereClause: any = {
     OR: [
@@ -218,6 +219,14 @@ export const findCasesBySearchText = async (
   // Only add jurisdiction filter if jurisdiction is not null
   if (jurisdiction) {
     whereClause.jurisdiction = { name_long: jurisdiction };
+  }
+
+  // Add year filter if provided
+  if (year) {
+    whereClause.decision_date = {
+      gte: new Date(`${year}-01-01`),
+      lt: new Date(`${year + 1}-01-01`),
+    };
   }
 
   if (!paginationArgs) {
